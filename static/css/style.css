@@ -35,7 +35,7 @@
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
     line-height: 1.6;
   }
 
@@ -380,13 +380,15 @@
   .hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
   .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
 
-  /* ===== 考试全屏 ===== */
-  .fs {
+  /* 考试全屏 */
+.fs {
     display: none; position: fixed; inset: 0; z-index: 300;
     background: var(--bg); flex-direction: column;
     cursor: default; user-select: none;
     overflow: hidden;
-  }
+    scrollbar-width: none;
+}
+  .fs::-webkit-scrollbar { display: none; }
   .fs.show { display: flex; }
 
   .fs-bar {
@@ -412,7 +414,9 @@
   .fs-body {
     flex: 1; display: flex; flex-direction: row;
     position: relative; overflow: hidden;
+    scrollbar-width: none;
   }
+  .fs-body::-webkit-scrollbar { display: none; }
 
   .fs-glow {
     position: absolute; width: 600px; height: 600px; border-radius: 50%;
@@ -431,7 +435,9 @@
     display: flex; flex-direction: column;
     background: var(--surface); border-right: 1px solid var(--border);
     overflow-y: auto; position: relative; z-index: 1;
+    scrollbar-width: none;
   }
+  .fs-left::-webkit-scrollbar { display: none; }
   .fs-left-head {
     padding: 28px 24px; text-align: center;
     border-bottom: 1px solid var(--border);
@@ -459,7 +465,9 @@
   .fs-left-schedule {
     flex: 1; border-top: 1px solid var(--border);
     overflow-y: auto; padding: 16px;
+    scrollbar-width: none;
   }
+  .fs-left-schedule::-webkit-scrollbar { display: none; }
   .fs-left-schedule .fs-sched-title {
     font-size: 11px; color: var(--text3); letter-spacing: 2px;
     text-transform: uppercase; margin-bottom: 12px; text-align: center;
@@ -484,7 +492,9 @@
     align-items: center; justify-content: center;
     position: relative; z-index: 1; padding: 40px;
     overflow-y: auto;
+    scrollbar-width: none;
   }
+  .fs-right::-webkit-scrollbar { display: none; }
   .fs-cd-label {
     font-size: 13px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
   }
@@ -541,7 +551,8 @@
     .avatar { width: 30px; height: 30px; }
     .world-clocks { grid-template-columns: repeat(2, 1fr); }
     .fs-body { flex-direction: column; }
-    .fs-left { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; }
+    .fs-left { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; scrollbar-width: none; }
+    .fs-left::-webkit-scrollbar { display: none; }
     .fs-left-head { padding: 16px; }
     .fs-left-head .fs-ico { font-size: 36px; }
     .fs-left-head .fs-name { font-size: 22px; }
@@ -562,7 +573,9 @@
     align-items: center; justify-content: center;
     cursor: pointer; user-select: none;
     overflow: hidden;
+    scrollbar-width: none;
   }
+  .time-fs::-webkit-scrollbar { display: none; }
   .time-fs.show { display: flex; }
   .time-fs-clock {
     font-size: 120px; font-weight: 100; letter-spacing: 8px;

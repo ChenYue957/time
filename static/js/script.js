@@ -31,10 +31,8 @@ let authorLabel = '访问主页';
 
 if (host.includes('chenyue.art')) {
   domainType = 'art'; domainDisplay = 'time.chenyue.art';
-  authorURL = 'https://chenyue.art:957/'; authorLabel = '访问 chenyue.art';
 } else if (host.includes('github')) {
   domainType = 'github'; domainDisplay = 'time.chenyue.top';
-  authorURL = 'https://chenyue957.github.io/home/'; authorLabel = '访问 GitHub 主页';
 }
 
 document.getElementById('site-domain').textContent = domainDisplay;
@@ -45,12 +43,28 @@ const nodeMap = { top: 'node-top', art: 'node-art', github: 'node-gh' };
 const currentNodeEl = document.getElementById(nodeMap[domainType]);
 if (currentNodeEl) currentNodeEl.classList.add('current');
 
-document.getElementById('nav-author').addEventListener('click', () => {
+const PANEL_STORAGE_KEY = 'cy_time_panel';
+function activatePanel(panelId) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('nav-author').classList.add('active');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('p-author').classList.add('active');
+  const tab = document.querySelector(`.nav-tab[data-tab="${panelId}"]`);
+  if (tab) tab.classList.add('active');
+  else document.getElementById('nav-author').classList.add('active');
+  const panel = document.getElementById('p-' + panelId);
+  if (panel) panel.classList.add('active');
+  localStorage.setItem(PANEL_STORAGE_KEY, panelId);
+}
+
+document.getElementById('nav-author').addEventListener('click', () => activatePanel('author'));
+
+document.querySelectorAll('.nav-tab[data-tab]').forEach(tab => {
+  tab.addEventListener('click', () => activatePanel(tab.dataset.tab));
 });
+
+const savedPanel = localStorage.getItem(PANEL_STORAGE_KEY);
+if (savedPanel && ['time', 'diff', 'exam', 'author'].includes(savedPanel)) {
+  activatePanel(savedPanel);
+}
 
 /* ===== 节点弹窗 ===== */
 function toggleNodePopup() {
@@ -59,16 +73,6 @@ function toggleNodePopup() {
 document.addEventListener('click', e => {
   if (!document.getElementById('header-left').contains(e.target))
     document.getElementById('node-popup').classList.remove('show');
-});
-
-/* ===== 标签切换 ===== */
-document.querySelectorAll('.nav-tab[data-tab]').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('p-' + tab.dataset.tab).classList.add('active');
-  });
 });
 
 /* ===== 时间面板 ===== */

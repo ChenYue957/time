@@ -1,328 +1,232 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>时间板 | ChenYue</title>
-    <link rel="icon" href="https://chenyue.top/favicon.ico" type="image/x-icon">
-    <meta name="description" content="尘钥ChenYue的时间工具 — 世界时钟 · 时差同步 · 考试看板">
-    <meta name="keywords" content="尘钥ChenYue，时间板，时间工具，考试倒计时">
-    <meta name="og:title" content="时间板 | ChenYue">
-    <meta name="og:type" content="website">
-    <meta property="og:locale" content="zh_CN">
-    <meta name="og:image" content="https://chenyue.top/favicon.ico">
-    <meta name="og:description" content="世界时钟 · 时差同步 · 考试看板">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="./style.css">
-    <script>
-        // 主题预加载（复用主站逻辑，避免闪烁）
-        (function () {
-            var saved = null;
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var c = cookies[i].replace(/^\s+/, '');
-                if (c.indexOf('themeState=') === 0) {
-                    saved = c.substring(11);
-                    break;
-                }
-            }
-            var theme;
-            if (saved === 'Dark' || saved === 'Blue') {
-                theme = saved;
-            } else {
-                try {
-                    theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Blue';
-                } catch (e) {
-                    theme = 'Blue';
-                }
-            }
-            if (theme === 'Dark') {
-                document.documentElement.dataset.theme = 'dack';
-            }
-        })();
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时间看板</title>
+  <link rel="icon" href="./favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./static/css/style.css">
 </head>
-
 <body>
 
-    <!-- 刷新加载动画（复用主站风格） -->
-    <div id="PageLoading">
-        <div id="PageLoading-center">
-            <div class="loading-ring"></div>
-            <div class="loading-ring"></div>
-            <div class="loading-ring"></div>
-            <div class="loading-ring"></div>
+  <!-- ===== 头部导航 ===== -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left" id="header-left" onclick="toggleNodePopup()">
+        <img class="avatar" id="avatar" src="./favicon.ico" alt=""
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%236c8cff%22/><text x=%2250%22 y=%2262%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2236%22 font-family=%22sans-serif%22>CY</text></svg>'">
+        <div class="site-info">
+          <span class="site-title">尘钥 ChenYue</span>
+          <span class="site-domain" id="site-domain"></span>
         </div>
+        <div class="node-popup" id="node-popup">
+          <a class="node-item" id="node-top" href="https://time.chenyue.top" onclick="event.stopPropagation()">
+            <span class="node-dot cf"></span>
+            <div><div class="node-name">全球 CF 节点</div><div class="node-url">time.chenyue.top</div></div>
+          </a>
+          <a class="node-item" id="node-art" href="https://time.chenyue.art" onclick="event.stopPropagation()">
+            <span class="node-dot v6"></span>
+            <div><div class="node-name">IPv6 高速节点</div><div class="node-url">time.chenyue.art</div></div>
+          </a>
+          <a class="node-item" id="node-gh" href="https://chenyue957.github.io/time/" onclick="event.stopPropagation()">
+            <span class="node-dot gh"></span>
+            <div><div class="node-name">GitHub 备线</div><div class="node-url">chenyue957.github.io/time</div></div>
+          </a>
+        </div>
+      </div>
+      <nav class="nav header-nav">
+        <button class="nav-tab active" data-tab="time">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          时间
+        </button>
+        <button class="nav-tab" data-tab="diff">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          校时
+        </button>
+        <button class="nav-tab" data-tab="exam">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          考试看板
+        </button>
+        <button class="nav-tab" id="nav-author">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          作者
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== 主内容区 ===== -->
+  <div class="main">
+
+    <!-- 时间面板 -->
+    <div class="panel active" id="p-time">
+      <div class="card time-card">
+        <div class="time-clock" id="clock" onclick="openTimeFS()" style="cursor:pointer" title="点击全屏">--:--<span class="sec">:--</span><span class="ms">.00</span></div>
+        <div class="time-date" id="date">----年--月--日</div>
+        <div class="time-chips">
+          <div class="chip">时区 <b id="tz">--</b></div>
+          <div class="chip">星期 <b id="wd">--</b></div>
+          <div class="chip">农历 <b id="lunar">--</b></div>
+        </div>
+        <div class="world-clocks" id="world-clocks"></div>
+      </div>
     </div>
 
-    <div class="main">
-
-        <!-- ===== 左侧边栏 ===== -->
-        <div class="left">
-            <div class="left-main">
-
-                <!-- Logo -->
-                <div class="logo-area" id="header-left" style="cursor:pointer;">
-                    <img src="https://chenyue.top/favicon.ico" alt="尘钥ChenYue"
-                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%236c8cff%22/><text x=%2250%22 y=%2262%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2236%22 font-family=%22sans-serif%22>CY</text></svg>'">
-                    <!-- 节点选择弹窗 -->
-                    <div class="node-popup" id="node-popup">
-                        <a class="node-item" id="node-top" href="https://time.chenyue.top" onclick="event.stopPropagation()">
-                            <span class="node-dot cf"></span>
-                            <div><div class="node-name">.top 全球CF</div><div class="node-url">time.chenyue.top</div></div>
-                        </a>
-                        <a class="node-item" id="node-art" href="https://time.chenyue.art" onclick="event.stopPropagation()">
-                            <span class="node-dot v6"></span>
-                            <div><div class="node-name">.art IPv6 高速</div><div class="node-url">time.chenyue.art</div></div>
-                        </a>
-                        <a class="node-item" id="node-gh" href="https://chenyue957.github.io/time/" onclick="event.stopPropagation()">
-                            <span class="node-dot gh"></span>
-                            <div><div class="node-name">GitHub 备线</div><div class="node-url">chenyue957.github.io/time</div></div>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 侧边栏导航 -->
-                <div class="left-div">
-                    <div class="side-nav">
-                        <button class="side-nav-item active" data-tab="time">
-                            <span class="nav-ico">⏰</span> 时间
-                        </button>
-                        <button class="side-nav-item" data-tab="diff">
-                            <span class="nav-ico">🔄</span> 时差
-                        </button>
-                        <button class="side-nav-item" data-tab="exam">
-                            <span class="nav-ico">📋</span> 考试看板
-                        </button>
-                        <button class="side-nav-item" id="nav-author">
-                            <span class="nav-ico">👤</span> 作者
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 侧边栏时钟预览 -->
-                <div class="left-div">
-                    <div class="side-clock-preview">
-                        <div class="time" id="side-clock">--:--<span class="sec">:--</span></div>
-                        <div class="date" id="side-date">----月--日 星期-</div>
-                        <div class="chips">
-                            <div class="chip">时区 <b id="side-tz">--</b></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 侧边栏世界时钟 -->
-                <div class="left-div">
-                    <div class="world-clock-list" id="side-world-clocks"></div>
-                </div>
-
-                <!-- 主题切换 -->
-                <div class="left-div" style="display:flex; justify-content:center; gap:8px;">
-                    <button class="btn" id="themeToggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn icon-bianlan" onclick="left()">☰ 边栏</button>
-                </div>
-
-                <!-- 页脚 -->
-                <div class="side-footer">
-                    尘钥ChenYue © 2024-2026 |
-                    <a href="https://chenyue.top">chenyue.top</a>
-                </div>
-
-            </div>
+    <!-- 校时面板 -->
+    <div class="panel" id="p-diff">
+      <div class="card diff-center">
+        <div style="font-size:12px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">北京时间</div>
+        <div class="diff-big ok" id="cal-clock">--:--:--</div>
+        <div style="display:inline-block;padding:4px 18px;border-radius:999px;font-size:13px;font-weight:600" id="cal-badge">⏳ 正在同步</div>
+        <div class="diff-note" id="cal-note"></div>
+        <div class="diff-grid">
+          <div class="diff-cell"><div class="dl">设备</div><div class="dv" id="cal-d">--:--:--</div></div>
+          <div class="diff-cell"><div class="dl">服务器</div><div class="dv" id="cal-n">--:--:--</div></div>
+          <div class="diff-cell"><div class="dl">偏移</div><div class="dv" id="cal-o">--</div></div>
         </div>
-        <!-- ===== 左侧边栏结束 ===== -->
-
-
-        <!-- ===== 右侧主内容区 ===== -->
-        <div class="right">
-
-            <!-- TIME 面板 -->
-            <div class="panel active" id="p-time">
-                <div class="title">
-                    <span>⏰</span>
-                    时间
-                </div>
-                <div class="card time-card">
-                    <div class="time-clock" id="clock">--:--<span class="sec">:--</span><span class="ms">.00</span></div>
-                    <div class="time-date" id="date">----年--月--日 星期-</div>
-                    <div class="time-chips">
-                        <div class="chip">时区 <b id="tz">--</b></div>
-                        <div class="chip">第 <b id="wk">--</b> 周</div>
-                        <div class="chip">星期 <b id="wd">--</b></div>
-                    </div>
-                    <div class="world-clocks" id="world-clocks"></div>
-                </div>
-            </div>
-
-            <!-- DIFF 面板 -->
-            <div class="panel" id="p-diff">
-                <div class="title">
-                    <span>🔄</span>
-                    时差
-                </div>
-                <div class="card diff-center">
-                    <div class="diff-label">设备时间 vs 标准时间</div>
-                    <div class="diff-big ok" id="dv">计算中…</div>
-                    <div class="diff-sub" id="ds">正在同步</div>
-                    <div class="diff-note" id="dn"></div>
-                    <div class="diff-grid">
-                        <div class="diff-cell">
-                            <div class="dl">设备</div>
-                            <div class="dv" id="dt-d">--:--:--</div>
-                        </div>
-                        <div class="diff-cell">
-                            <div class="dl">标准</div>
-                            <div class="dv" id="dt-n">--:--:--</div>
-                        </div>
-                        <div class="diff-cell">
-                            <div class="dl">偏移</div>
-                            <div class="dv" id="dt-o">-- ms</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- EXAM 面板 -->
-            <div class="panel" id="p-exam">
-                <div class="title">
-                    <span>📋</span>
-                    考试看板
-                </div>
-                <div class="exam-bar">
-                    <div class="exam-bar-actions">
-                        <button class="btn btn-green" id="btn-fs" onclick="openNearestFS()" style="display:none">
-                            ⛶ 全屏
-                        </button>
-                        <button class="btn btn-accent" onclick="openModal()">
-                            + 添加
-                        </button>
-                        <button class="btn btn-red" onclick="clearAll()">
-                            清空
-                        </button>
-                    </div>
-                </div>
-                <div id="exam-list"></div>
-            </div>
-
-            <!-- AUTHOR 面板 -->
-            <div class="panel" id="p-author">
-                <div class="title">
-                    <span>👤</span>
-                    作者
-                </div>
-                <div class="card author-wrap">
-                    <img class="av" id="author-av" src="https://chenyue.top/favicon.ico" alt=""
-                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%236c8cff%22/><text x=%2250%22 y=%2262%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2236%22 font-family=%22sans-serif%22>CY</text></svg>'">
-                    <h3>尘钥 ChenYue</h3>
-                    <p>养正中学 · 毓英中学<br>兴趣爱好 · 技术 · 生活 · 创造</p>
-                    <a id="author-link" href="https://chenyue.top" target="_blank">🌐 访问主页</a>
-                </div>
-            </div>
-
-        </div>
-        <!-- ===== 右侧主内容区结束 ===== -->
-
+        <div style="font-size:11px;color:var(--text3);margin-top:16px;opacity:0.5">时间源: timeapi.io / 阿里云</div>
+      </div>
     </div>
 
-
-    <!-- 添加/编辑考试弹窗 -->
-    <div class="overlay" id="modal">
-        <div class="modal">
-            <h3 id="modal-title">添加考试</h3>
-            <input type="hidden" id="edit-id" value="">
-            <div class="fg">
-                <label>科目</label>
-                <div class="subj-grid" id="sg">
-                    <button class="subj-btn" data-s="语文">📖 语文</button>
-                    <button class="subj-btn" data-s="数学">🔢 数学</button>
-                    <button class="subj-btn" data-s="英语">🔤 英语</button>
-                    <button class="subj-btn" data-s="物理">⚛️ 物理</button>
-                    <button class="subj-btn" data-s="化学">🧪 化学</button>
-                    <button class="subj-btn" data-s="生物">🧬 生物</button>
-                    <button class="subj-btn" data-s="政治">📜 政治</button>
-                    <button class="subj-btn" data-s="历史">🏛️ 历史</button>
-                    <button class="subj-btn" data-s="地理">🌍 地理</button>
-                </div>
-                <input class="input" type="text" id="inp-custom" placeholder="或输入自定义科目…" style="margin-top:8px">
-            </div>
-            <div class="row2">
-                <div class="fg">
-                    <label>开始时间</label>
-                    <input class="input" type="datetime-local" id="inp-start">
-                </div>
-                <div class="fg">
-                    <label>考试时长</label>
-                    <select class="input" id="inp-dur">
-                        <option value="45">45 分钟</option>
-                        <option value="60">60 分钟</option>
-                        <option value="75">75 分钟</option>
-                        <option value="90">90 分钟</option>
-                        <option value="100">100 分钟</option>
-                        <option value="120">2 小时</option>
-                        <option value="150">2.5 小时</option>
-                        <option value="180">3 小时</option>
-                        <option value="custom">自定义…</option>
-                    </select>
-                </div>
-            </div>
-            <div class="fg" id="fg-custom-dur" style="display:none">
-                <label>自定义时长（分钟）</label>
-                <input class="input" type="number" id="inp-custom-dur" placeholder="输入分钟数" min="1" max="600">
-            </div>
-            <div class="hint" id="dur-hint">默认 75 分钟</div>
-            <div class="modal-foot">
-                <button class="btn btn-ghost" onclick="closeModal()">取消</button>
-                <button class="btn btn-accent" id="modal-confirm" onclick="confirmModal()">确认</button>
-            </div>
+    <!-- 考试面板 -->
+    <div class="panel" id="p-exam">
+      <div class="exam-bar">
+        <h2>📋 考试看板</h2>
+        <div class="exam-bar-actions">
+          <button class="btn btn-green" id="btn-fs" onclick="openNearestFS()" style="display:none">⛶ 全屏</button>
+          <button class="btn btn-accent" onclick="openModal()">+ 添加</button>
+          <button class="btn btn-red" onclick="clearAll()">清空</button>
         </div>
+      </div>
+      <div id="exam-list"></div>
     </div>
 
-
-    <!-- 全屏考试模式 -->
-    <div class="fs" id="fs">
-        <div class="fs-bar">
-            <div class="fs-bar-left">
-                <span>考试看板</span>
-                <span class="sep">|</span>
-                <span class="sub" id="fs-bar-sub">--</span>
-            </div>
-            <button class="fs-exit" onclick="closeFS()">✕ 退出全屏</button>
-        </div>
-        <div class="fs-body" id="fs-body">
-            <div class="fs-glow"></div>
-
-            <!-- 当前考试 -->
-            <div class="fs-current">
-                <div class="fs-ico" id="fs-ico">📖</div>
-                <div class="fs-name" id="fs-name">--</div>
-                <div class="fs-state">
-                    <span class="fs-dot" id="fs-dot"></span>
-                    <span id="fs-stxt">--</span>
-                </div>
-                <div class="fs-cd-label" id="fs-cd-label">剩余时间</div>
-                <div class="fs-cd" id="fs-cd">00:00:00</div>
-                <div class="fs-time-row">
-                    <div class="fs-chip">开考 <b id="fs-t1">--:--</b></div>
-                    <div class="fs-chip">结束 <b id="fs-t2">--:--</b></div>
-                    <div class="fs-chip">现在 <b id="fs-now">--:--:--</b></div>
-                </div>
-            </div>
-
-            <!-- 考试安排 -->
-            <div class="fs-schedule" id="fs-schedule">
-                <div class="fs-sched-title">考试安排</div>
-                <div class="fs-sched-list" id="fs-sched-list"></div>
-            </div>
-
-        </div>
-        <div style="padding:12px;text-align:center;font-size:11px;color:var(--text3);opacity:0.4;flex-shrink:0">
-            按 Esc 或点击空白处退出
-        </div>
+    <!-- 作者面板 -->
+    <div class="panel" id="p-author">
+      <div class="card author-wrap">
+        <img class="av" id="author-av" src="./favicon.ico" alt=""
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%236c8cff%22/><text x=%2250%22 y=%2262%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2236%22 font-family=%22sans-serif%22>CY</text></svg>'">
+        <h3>尘钥 ChenYue</h3>
+        <p>养正中学 · 毓英中学<br>兴趣爱好 · 技术 · 生活 · 创造</p>
+        <a id="author-link" href="https://chenyue.top" target="_blank">访问主页</a>
+      </div>
     </div>
 
+    <!-- 页脚 -->
+    <footer style="text-align:center;padding:32px 20px 24px;color:var(--text3);font-size:12px;line-height:2">
+      <div style="margin-bottom:8px">
+        <a href="https://chenyue.top" target="_blank" style="color:var(--accent);text-decoration:none">尘钥 ChenYue</a>
+        <span style="margin:0 8px">·</span>
+        <span>时间看板</span>
+      </div>
+      <div>© 2026 ChenYue · Powered by timeapi.io &amp; Alibaba Cloud</div>
+    </footer>
 
-    <script src="./script.js"></script>
+  </div>
+
+  <!-- ===== 考试弹窗 ===== -->
+  <div class="overlay" id="modal">
+    <div class="modal">
+      <h3 id="modal-title">添加考试</h3>
+      <input type="hidden" id="edit-id" value="">
+      <div class="fg">
+        <label>科目</label>
+        <div class="subj-grid" id="sg">
+          <button class="subj-btn" data-s="语文">📖 语文</button>
+          <button class="subj-btn" data-s="数学">🔢 数学</button>
+          <button class="subj-btn" data-s="英语">🔤 英语</button>
+          <button class="subj-btn" data-s="物理">⚛️ 物理</button>
+          <button class="subj-btn" data-s="化学">🧪 化学</button>
+          <button class="subj-btn" data-s="生物">🧬 生物</button>
+          <button class="subj-btn" data-s="政治">📜 政治</button>
+          <button class="subj-btn" data-s="历史">🏛️ 历史</button>
+          <button class="subj-btn" data-s="地理">🌍 地理</button>
+        </div>
+        <input class="input" type="text" id="inp-custom" placeholder="或输入自定义科目…" style="margin-top:8px">
+      </div>
+      <div class="row2">
+        <div class="fg">
+          <label>开始时间</label>
+          <input class="input" type="datetime-local" id="inp-start">
+        </div>
+        <div class="fg">
+          <label>考试时长</label>
+          <div class="dur-dropdown" id="dur-dropdown">
+            <div class="dur-trigger" id="dur-trigger" onclick="toggleDur()">
+              <span id="dur-label">75 分钟</span>
+              <span class="arrow"></span>
+            </div>
+            <div class="dur-list" id="dur-list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fg" id="fg-custom-dur" style="display:none">
+        <label>自定义时长（分钟）</label>
+        <input class="input" type="number" id="inp-custom-dur" placeholder="输入分钟数" min="1" max="600">
+      </div>
+      <div class="hint" id="dur-hint">默认 75 分钟</div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+        <button class="btn btn-accent" id="modal-confirm" onclick="confirmModal()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 考试全屏 ===== -->
+  <div class="fs" id="fs">
+    <div class="fs-bar">
+      <div class="fs-bar-left">
+        <span>考试看板</span>
+        <span class="sep">|</span>
+        <span class="sub" id="fs-bar-sub">--</span>
+      </div>
+      <button class="fs-exit" onclick="closeFS()">✕ 退出全屏</button>
+    </div>
+    <div class="fs-body" id="fs-body">
+      <div class="fs-glow"></div>
+      <div class="fs-left">
+        <div class="fs-left-head">
+          <div class="fs-ico" id="fs-ico">📖</div>
+          <div class="fs-name" id="fs-name">--</div>
+          <div class="fs-state">
+            <span class="fs-dot" id="fs-dot"></span>
+            <span id="fs-stxt">--</span>
+          </div>
+        </div>
+        <div class="fs-left-info">
+          <div class="fs-li-row"><span class="fs-li-label">开考</span><span class="fs-li-val" id="fs-t1">--:--</span></div>
+          <div class="fs-li-row"><span class="fs-li-label">结束</span><span class="fs-li-val" id="fs-t2">--:--</span></div>
+          <div class="fs-li-row"><span class="fs-li-label">现在</span><span class="fs-li-val" id="fs-now">--:--:--</span></div>
+        </div>
+        <div class="fs-left-schedule">
+          <div class="fs-sched-title">考试安排</div>
+          <div class="fs-left-list" id="fs-sched-list"></div>
+        </div>
+      </div>
+      <div class="fs-right">
+        <div class="fs-cd-label" id="fs-cd-label">剩余时间</div>
+        <div class="fs-cd" id="fs-cd">00:00:00</div>
+        <div class="fs-time-row">
+          <div class="fs-chip">开考 <b id="fs-chip-t1">--:--</b></div>
+          <div class="fs-chip">结束 <b id="fs-chip-t2">--:--</b></div>
+          <div class="fs-chip">现在 <b id="fs-chip-now">--:--:--</b></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px;text-align:center;font-size:11px;color:var(--text3);opacity:0.4;flex-shrink:0">按 Esc 或点击空白处退出</div>
+  </div>
+
+  <!-- ===== 时间全屏 ===== -->
+  <div class="time-fs" id="time-fs">
+    <div class="time-fs-glow"></div>
+    <div class="time-fs-clock" id="tfs-clock">00:00:00</div>
+    <div class="time-fs-date" id="tfs-date">----年--月--日</div>
+    <div class="time-fs-info">
+      <div class="time-fs-chip">时区 <b id="tfs-tz">--</b></div>
+    </div>
+    <div class="time-fs-hint">按 Esc 或点击任意处退出</div>
+  </div>
+
+  <script src="./static/js/script.js"></script>
 </body>
-
 </html>

@@ -7,8 +7,16 @@ const pad = n => String(n).padStart(2, '0');
 const WKS = ['日','一','二','三','四','五','六'];
 
 function weekOfYear(d) {
-  const j = new Date(d.getFullYear(), 0, 1);
-  return Math.ceil(((d - j) / 864e5 + j.getDay() + 1) / 7);
+  // ISO 8601 week number: weeks start on Monday, first week contains Jan 4
+  const date = new Date(d.getTime());
+  date.setHours(0, 0, 0, 0);
+  // Thursday in current week decides the year
+  date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+  // January 4 is always in week 1
+  const week1 = new Date(date.getFullYear(), 0, 4);
+  // Adjust to Thursday in week 1 and count number of weeks
+  return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000
+    - 3 + (week1.getDay() + 6) % 7) / 7);
 }
 
 function fmtTime(ts) {
@@ -30,14 +38,24 @@ let authorURL = 'https://chenyue.top';
 let authorLabel = '访问主页';
 
 if (host.includes('chenyue.art')) {
-  domainType = 'art'; domainDisplay = 'time.chenyue.art';
+  domainType = 'art';
+  domainDisplay = 'time.chenyue.art';
+  authorURL = 'https://chenyue.art:957';
 } else if (host.includes('github')) {
-  domainType = 'github'; domainDisplay = 'time.chenyue.top';
+  domainType = 'github';
+  domainDisplay = 'time.chenyue.top';
+  authorURL = 'https://chenyue957.github.io/home/';
 }
 
 document.getElementById('site-domain').textContent = domainDisplay;
 document.getElementById('author-link').href = authorURL;
 document.getElementById('author-link').textContent = authorLabel;
+
+// 同步页脚链接
+const footerLink = document.querySelector('footer a[href]');
+if (footerLink) {
+  footerLink.href = authorURL;
+}
 
 const nodeMap = { top: 'node-top', art: 'node-art', github: 'node-gh' };
 const currentNodeEl = document.getElementById(nodeMap[domainType]);
@@ -162,11 +180,9 @@ function tick() {
   } catch { h=now.getHours(); m=now.getMinutes(); s=now.getSeconds(); y=now.getFullYear(); mo=now.getMonth()+1; da=now.getDate(); }
   const ms = now.getMilliseconds();
   try {
-    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'long' });
-    wd = wkStr.replace('星期', '');
+    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'short' });
+    wd = wkStr.replace('星期','');
   } catch { wd = WKS[now.getDay()]; }
-
-  const wkNum = weekOfYear(new Date(y, mo - 1, da));
 
   document.getElementById('clock').innerHTML =
     pad(h) + ':' + pad(m) +
@@ -175,8 +191,9 @@ function tick() {
   document.getElementById('date').textContent =
     y + '年' + pad(mo) + '月' + pad(da) + '日';
   document.getElementById('tz').textContent = selectedTZ ? (WORLDTZ.find(z=>z.tz===selectedTZ)?.city || selectedTZ) : Intl.DateTimeFormat().resolvedOptions().timeZone;
-  document.getElementById('wd').textContent = `第${wkNum}周 星期${wd}`;
+  document.getElementById('wd').textContent = wd;
   document.getElementById('lunar').textContent = solar2lunar(y, mo, da);
+  document.title = '时间看板 | ' + pad(h) + ':' + pad(m) + ':' + pad(s);
 }
 setInterval(tick, 50); tick();
 
@@ -645,8 +662,8 @@ function tickFS() {
 
 function fsSwitch(id) { fsId = id; tickFS(); }
 
-document.getElementById('fs-body').addEventListener('click', e => {
-  if (e.target === document.getElementById('fs-body')) closeFS();
+document.getElementById('fs').addEventListener('click', e => {
+  if (e.target === document.getElementById('fs')) closeFS();
 });
 
 document.addEventListener('keydown', e => {
@@ -690,11 +707,9 @@ function tickTimeFS() {
   } catch { h=now.getHours(); m=now.getMinutes(); s=now.getSeconds(); y=now.getFullYear(); mo=now.getMonth()+1; da=now.getDate(); }
   const ms = now.getMilliseconds();
   try {
-    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'long' });
-    wd = wkStr.replace('星期', '');
+    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'short' });
+    wd = wkStr.replace('星期','');
   } catch { wd = WKS[now.getDay()]; }
-
-  const wkNum = weekOfYear(new Date(y, mo - 1, da));
 
   document.getElementById('tfs-clock').innerHTML =
     pad(h) + ':' + pad(m) +
@@ -705,5 +720,7 @@ function tickTimeFS() {
   document.getElementById('tfs-tz').textContent = selectedTZ ? (WORLDTZ.find(z=>z.tz===selectedTZ)?.city || selectedTZ) : Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-timeFSEl.addEventListener('click', closeTimeFS);
+timeFSEl.addEventListener('click', e => {
+  if (e.target === timeFSEl) closeTimeFS();
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && timeFSEl.classList.contains('show')) closeTimeFS(); });

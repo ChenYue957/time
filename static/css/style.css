@@ -385,6 +385,7 @@
     display: none; position: fixed; inset: 0; z-index: 300;
     background: var(--bg); flex-direction: column;
     cursor: default; user-select: none;
+    overflow: hidden;
   }
   .fs.show { display: flex; }
 
@@ -560,6 +561,7 @@
     background: var(--bg); flex-direction: column;
     align-items: center; justify-content: center;
     cursor: pointer; user-select: none;
+    overflow: hidden;
   }
   .time-fs.show { display: flex; }
   .time-fs-clock {

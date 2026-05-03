@@ -162,9 +162,11 @@ function tick() {
   } catch { h=now.getHours(); m=now.getMinutes(); s=now.getSeconds(); y=now.getFullYear(); mo=now.getMonth()+1; da=now.getDate(); }
   const ms = now.getMilliseconds();
   try {
-    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'short' });
-    wd = wkStr.replace('星期','');
+    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'long' });
+    wd = wkStr.replace('星期', '');
   } catch { wd = WKS[now.getDay()]; }
+
+  const wkNum = weekOfYear(new Date(y, mo - 1, da));
 
   document.getElementById('clock').innerHTML =
     pad(h) + ':' + pad(m) +
@@ -173,9 +175,8 @@ function tick() {
   document.getElementById('date').textContent =
     y + '年' + pad(mo) + '月' + pad(da) + '日';
   document.getElementById('tz').textContent = selectedTZ ? (WORLDTZ.find(z=>z.tz===selectedTZ)?.city || selectedTZ) : Intl.DateTimeFormat().resolvedOptions().timeZone;
-  document.getElementById('wd').textContent = wd;
+  document.getElementById('wd').textContent = `第${wkNum}周 星期${wd}`;
   document.getElementById('lunar').textContent = solar2lunar(y, mo, da);
-  document.title = '时间看板 | ' + pad(h) + ':' + pad(m) + ':' + pad(s);
 }
 setInterval(tick, 50); tick();
 
@@ -689,16 +690,18 @@ function tickTimeFS() {
   } catch { h=now.getHours(); m=now.getMinutes(); s=now.getSeconds(); y=now.getFullYear(); mo=now.getMonth()+1; da=now.getDate(); }
   const ms = now.getMilliseconds();
   try {
-    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'short' });
-    wd = wkStr.replace('星期','');
+    const wkStr = now.toLocaleDateString('zh-CN', { timeZone: tz, weekday: 'long' });
+    wd = wkStr.replace('星期', '');
   } catch { wd = WKS[now.getDay()]; }
+
+  const wkNum = weekOfYear(new Date(y, mo - 1, da));
 
   document.getElementById('tfs-clock').innerHTML =
     pad(h) + ':' + pad(m) +
     '<span class="sec">:' + pad(s) + '</span>' +
     '<span class="ms">.' + pad(Math.floor(ms / 10)) + '</span>';
   document.getElementById('tfs-date').textContent =
-    y + '年' + pad(mo) + '月' + pad(da) + '日 星期' + wd + ' ' + solar2lunar(y, mo, da);
+    y + '年' + pad(mo) + '月' + pad(da) + '日 第' + wkNum + '周 星期' + wd + ' ' + solar2lunar(y, mo, da);
   document.getElementById('tfs-tz').textContent = selectedTZ ? (WORLDTZ.find(z=>z.tz===selectedTZ)?.city || selectedTZ) : Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 

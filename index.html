@@ -61,7 +61,7 @@
     <!-- 时间面板 -->
     <div class="panel active" id="p-time">
       <div class="card time-card">
-        <div class="time-clock" id="clock" onclick="openTimeFS()" style="cursor:pointer" title="点击全屏">--:--<span class="sec">:--</span><span class="ms">.00</span></div>
+        <div class="time-clock" id="clock" onclick="openTimeFS()" title="点击全屏">--:--<span class="sec">:--</span><span class="ms">.00</span></div>
         <div class="time-date" id="date">----年--月--日</div>
         <div class="time-chips">
           <div class="chip">时区 <b id="tz">--</b></div>
@@ -75,16 +75,16 @@
     <!-- 校时面板 -->
     <div class="panel" id="p-diff">
       <div class="card diff-center">
-        <div style="font-size:12px;color:var(--text3);letter-spacing:2px;text-transform:uppercase">北京时间</div>
+            <div class="diff-label">北京时间</div>
         <div class="diff-big ok" id="cal-clock">--:--:--</div>
-        <div style="display:inline-block;padding:4px 18px;border-radius:999px;font-size:13px;font-weight:600" id="cal-badge">⏳ 正在同步</div>
+        <div class="diff-badge" id="cal-badge">⏳ 正在同步</div>
         <div class="diff-note" id="cal-note"></div>
         <div class="diff-grid">
           <div class="diff-cell"><div class="dl">设备</div><div class="dv" id="cal-d">--:--:--</div></div>
           <div class="diff-cell"><div class="dl">服务器</div><div class="dv" id="cal-n">--:--:--</div></div>
           <div class="diff-cell"><div class="dl">偏移</div><div class="dv" id="cal-o">--</div></div>
         </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:16px;opacity:0.5">时间源: timeapi.io / 阿里云</div>
+        <div class="diff-footnote">时间源: timeapi.io / worldtimeapi.org / 阿里云 / 本地</div>
       </div>
     </div>
 
@@ -93,7 +93,7 @@
       <div class="exam-bar">
         <h2>📋 考试看板</h2>
         <div class="exam-bar-actions">
-          <button class="btn btn-green" id="btn-fs" onclick="openNearestFS()" style="display:none">⛶ 全屏</button>
+          <button class="btn btn-green" id="btn-fs" onclick="openNearestFS()">⛶ 全屏</button>
           <button class="btn btn-accent" onclick="openModal()">+ 添加</button>
           <button class="btn btn-red" onclick="clearAll()">清空</button>
         </div>
@@ -108,15 +108,15 @@
              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%236c8cff%22/><text x=%2250%22 y=%2262%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2236%22 font-family=%22sans-serif%22>CY</text></svg>'">
         <h3>尘钥 ChenYue</h3>
         <p>养正中学 · 毓英中学<br>兴趣爱好 · 技术 · 生活 · 创造</p>
-        <a id="author-link" href="https://chenyue.top" target="_blank">访问主页</a>
+        <a id="author-link" href="https://chenyue.top" target="_blank" rel="noopener noreferrer">访问主页</a>
       </div>
     </div>
 
     <!-- 页脚 -->
-    <footer style="text-align:center;padding:32px 20px 24px;color:var(--text3);font-size:12px;line-height:2">
-      <div style="margin-bottom:8px">
-        <a href="https://chenyue.top" target="_blank" style="color:var(--accent);text-decoration:none">尘钥 ChenYue</a>
-        <span style="margin:0 8px">·</span>
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a href="https://chenyue.top" target="_blank" rel="noopener noreferrer" class="footer-link">尘钥 ChenYue</a>
+        <span class="footer-sep">·</span>
         <span>时间看板</span>
       </div>
       <div>© 2026 ChenYue · Powered by timeapi.io &amp; Alibaba Cloud</div>
@@ -130,7 +130,7 @@
       <h3 id="modal-title">添加考试</h3>
       <input type="hidden" id="edit-id" value="">
       <div class="fg">
-        <label>科目</label>
+        <label for="inp-custom">科目</label>
         <div class="subj-grid" id="sg">
           <button class="subj-btn" data-s="语文">📖 语文</button>
           <button class="subj-btn" data-s="数学">🔢 数学</button>
@@ -142,11 +142,11 @@
           <button class="subj-btn" data-s="历史">🏛️ 历史</button>
           <button class="subj-btn" data-s="地理">🌍 地理</button>
         </div>
-        <input class="input" type="text" id="inp-custom" placeholder="或输入自定义科目…" style="margin-top:8px">
+        <input class="input" type="text" id="inp-custom" placeholder="或输入自定义科目…">
       </div>
       <div class="row2">
         <div class="fg">
-          <label>开始时间</label>
+          <label for="inp-start">开始时间</label>
           <input class="input" type="datetime-local" id="inp-start">
         </div>
         <div class="fg">
@@ -160,8 +160,8 @@
           </div>
         </div>
       </div>
-      <div class="fg" id="fg-custom-dur" style="display:none">
-        <label>自定义时长（分钟）</label>
+      <div class="fg" id="fg-custom-dur">
+        <label for="inp-custom-dur">自定义时长（分钟）</label>
         <input class="input" type="number" id="inp-custom-dur" placeholder="输入分钟数" min="1" max="600">
       </div>
       <div class="hint" id="dur-hint">默认 75 分钟</div>
@@ -206,14 +206,15 @@
       <div class="fs-right">
         <div class="fs-cd-label" id="fs-cd-label">剩余时间</div>
         <div class="fs-cd" id="fs-cd">00:00:00</div>
+        <div class="fs-now-label">北京时间</div>
+        <div class="fs-now-value" id="fs-chip-now">--:--:--</div>
         <div class="fs-time-row">
           <div class="fs-chip">开考 <b id="fs-chip-t1">--:--</b></div>
           <div class="fs-chip">结束 <b id="fs-chip-t2">--:--</b></div>
-          <div class="fs-chip">现在 <b id="fs-chip-now">--:--:--</b></div>
         </div>
+        <div class="fs-hint">按 Esc 或点击空白处退出</div>
       </div>
     </div>
-    <div style="padding:12px;text-align:center;font-size:11px;color:var(--text3);opacity:0.4;flex-shrink:0">按 Esc 或点击空白处退出</div>
   </div>
 
   <!-- ===== 时间全屏 ===== -->

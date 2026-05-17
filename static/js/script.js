@@ -71,6 +71,7 @@ function activatePanel(panelId) {
   const panel = document.getElementById('p-' + panelId);
   if (panel) panel.classList.add('active');
   localStorage.setItem(PANEL_STORAGE_KEY, panelId);
+  try { adjustBodyScroll(); } catch (e) { /* adjustBodyScroll may be declared later */ }
 }
 
 document.getElementById('nav-author').addEventListener('click', () => activatePanel('author'));
@@ -210,8 +211,6 @@ const WORLDTZ = [
   { tz: 'America/New_York', city: '纽约',  flag: '🇺🇸' },
 ];
 
-let topTZ = null;
-
 function buildWorldClocks() {
   const localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const container = document.getElementById('world-clocks');
@@ -256,32 +255,63 @@ tickWorldClocks();
 /* ===== 校时面板 ===== */
 let offset = null;
 
-async function fetchOffset() {
-  // Primary: timeapi.io (supports CORS)
-  try {
-    const t0 = performance.now();
-    const r = await fetch('https://timeapi.io/api/time/current/zone?timeZone=Asia/Shanghai');
-    const t1 = performance.now();
-    if (r.ok) {
-      const j = await r.json();
-      const serverMs = new Date(j.dateTime).getTime();
-      if (!isNaN(serverMs)) return serverMs - Date.now() + (t1 - t0) / 2;
-    }
-  } catch {}
-  // Fallback: Alibaba Cloud mtop
-  try {
-    const t0 = performance.now();
-    const r = await fetch('https://acs.m.taobao.com/gw/mtop.common.getTimestamp/');
-    const t1 = performance.now();
-    if (r.ok) {
-      const j = await r.json();
-      const serverMs = parseInt(j.data.t);
-      if (!isNaN(serverMs)) return serverMs - Date.now() + (t1 - t0) / 2;
-    }
-  } catch {}
-  // Fallback: calculate Beijing time from device
+function calcLocalBeijingOffset() {
   const now = new Date();
   return (now.getTime() + now.getTimezoneOffset() * 6e4 + 8 * 36e5) - now.getTime();
+}
+
+async function probeTimeSource(name, url, parser) {
+  const t0 = performance.now();
+  const r = await fetch(url);
+  const t1 = performance.now();
+  if (!r.ok) throw new Error(`${name} 返回 ${r.status}`);
+  const payload = await r.text();
+  const serverMs = parser(payload);
+  if (isNaN(serverMs)) throw new Error(`${name} 解析失败`);
+  return {
+    name,
+    offset: serverMs - Date.now() + (t1 - t0) / 2,
+    rtt: t1 - t0,
+  };
+}
+
+async function fetchOffset() {
+  const sources = [
+    async () => probeTimeSource('timeapi.io', 'https://timeapi.io/api/time/current/zone?timeZone=Asia/Shanghai', text => {
+      const j = JSON.parse(text);
+      return new Date(j.dateTime).getTime();
+    }),
+    async () => probeTimeSource('worldtimeapi.org', 'https://worldtimeapi.org/api/timezone/Asia/Shanghai', text => {
+      const j = JSON.parse(text);
+      return new Date(j.datetime).getTime();
+    }),
+    async () => probeTimeSource('阿里云', 'https://acs.m.taobao.com/gw/mtop.common.getTimestamp/', text => {
+      const j = JSON.parse(text);
+      return parseInt(j.data?.t, 10);
+    }),
+  ];
+
+  const results = await Promise.allSettled(sources.map(fn => fn()));
+  const valid = results
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value);
+
+  const note = document.getElementById('cal-note');
+  if (valid.length >= 2) {
+    const offsets = valid.map(item => item.offset);
+    const avgOffset = offsets.reduce((sum, v) => sum + v, 0) / offsets.length;
+    const msDiff = Math.max(...offsets) - Math.min(...offsets);
+    note.textContent = `来源: ${valid.map(item => item.name).join(' / ')}，已互校；最大偏差 ${(msDiff / 1000).toFixed(3)}s`;
+    return avgOffset;
+  }
+
+  if (valid.length === 1) {
+    note.textContent = `来源: ${valid[0].name}；单源校准`;
+    return valid[0].offset;
+  }
+
+  note.textContent = '来源: 本地兜底，网络时间不可用';
+  return calcLocalBeijingOffset();
 }
 
 async function sync() {
@@ -291,6 +321,7 @@ async function sync() {
   badge.style.color = 'var(--accent)';
   badge.style.border = '1px solid rgba(108,140,255,0.3)';
   document.getElementById('cal-note').textContent = '';
+
   const r1 = await fetchOffset();
   if (r1 !== null) {
     offset = r1;
@@ -731,3 +762,48 @@ timeFSEl.addEventListener('click', e => {
   if (e.target === timeFSEl) closeTimeFS();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && timeFSEl.classList.contains('show')) closeTimeFS(); });
+
+// 自动控制页面垂直滚动：当页面内容完全可见时禁用上下滚动
+function adjustBodyScroll() {
+  const modal = document.getElementById('modal');
+  const fs = document.getElementById('fs');
+  const timeFs = document.getElementById('time-fs');
+  // 当存在模态或全屏时，不改变 overflow（这些场景由各自逻辑控制）
+  if ((modal && modal.classList.contains('open')) || (fs && fs.classList.contains('show')) || (timeFs && timeFs.classList.contains('show'))) {
+    return;
+  }
+  // 使用更稳健的高度计算并允许少量容差（处理缩放/子像素差异）
+  const docH = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+  const rectH = Math.max(document.documentElement.getBoundingClientRect().height, (document.body.getBoundingClientRect && document.body.getBoundingClientRect().height) || 0);
+
+  // 优先取 visualViewport（更准确反映视区），回退到 innerHeight
+  const viewportH = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
+
+  // 考虑到页面可能全局使用 CSS zoom，读取计算样式的 zoom 值并作为校正
+  let zoomFactor = 1;
+  try { zoomFactor = parseFloat(getComputedStyle(document.body).zoom) || 1; } catch (e) { zoomFactor = 1; }
+
+  const winHScaled = viewportH * zoomFactor;
+  const diff = Math.min(docH - winHScaled, rectH - winHScaled);
+  const TOL = 6; // 容差（像素）— 放大时需要更高容差
+  const shouldHide = diff <= TOL;
+
+  if (shouldHide) {
+    document.documentElement.classList.add('no-scroll');
+    document.body.classList.add('no-scroll');
+  } else {
+    document.documentElement.classList.remove('no-scroll');
+    document.body.classList.remove('no-scroll');
+  }
+}
+
+const debouncedAdjust = (() => { let t = null; return () => { clearTimeout(t); t = setTimeout(adjustBodyScroll, 60); }; })();
+window.addEventListener('resize', debouncedAdjust);
+window.addEventListener('load', adjustBodyScroll);
+document.addEventListener('DOMContentLoaded', adjustBodyScroll);
+
+// 监听 DOM 变化，以便内容变化时更新滚动策略
+try {
+  const mo = new MutationObserver(debouncedAdjust);
+  mo.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
+} catch (e) { /* swallow for older browsers */ }

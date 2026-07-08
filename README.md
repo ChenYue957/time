@@ -2,7 +2,7 @@
 
 一个功能丰富的网页时间看板，集实时校时、考试倒计时、世界时钟、农历显示于一体。
 
-🔗 在线演示：[time.chenyue.top](https://time.chenyue.top)
+🔗 在线演示：[time.chenyue.fun](https://time.chenyue.fun)
 
 ---
 
@@ -87,7 +87,7 @@ npx serve .
 
 | 节点        | 域名                         | 说明                |
 | --------- | -------------------------- | ----------------- |
-| 全球 CF 节点  | time.chenyue.top           | Cloudflare CDN 加速 |
+| 全球 CF 节点  | time.chenyue.fun           | Cloudflare CDN 加速 |
 | IPv6 高速节点 | time.chenyue.art           | IPv6 专线           |
 | GitHub 备线 | chenyue957.github.io/time/ | 备用线路              |
 
@@ -95,4 +95,4 @@ npx serve .
 
 ## 📄 许可
 
-© 2026 ChenYue · [chenyue.top](https://chenyue.top)
+© 2026 ChenYue · [chenyue.fun](https://chenyue.fun)

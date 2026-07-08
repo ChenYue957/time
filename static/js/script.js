@@ -24,25 +24,48 @@ function fmtCD(ms) {
 
 /* ===== 域名检测 ===== */
 const host = location.hostname.toLowerCase();
-let domainType = 'top';
-let domainDisplay = 'time.chenyue.top';
-let authorURL = 'https://chenyue.top';
+
+const isChenYueTop    = host.includes('chenyue.top');
+const isChenYueFun    = host.includes('chenyue.fun');
+const isChenYueCyou   = host.includes('chenyue.cyou');
+const isChenYueArt    = host.includes('chenyue.art');
+const isGithubPages   = host.includes('github.io');
+
+let domainType = 'fun';
+let domainDisplay = 'time.chenyue.fun';
+let authorURL = 'https://chenyue.fun';
 let authorLabel = '访问主页';
 
-if (host.includes('chenyue.art')) {
+if (isChenYueTop) {
+  domainType = 'top';
+  domainDisplay = 'time.chenyue.top';
+  authorURL = 'https://chenyue.top';
+  authorLabel = '访问主页';
+} else if (isChenYueFun) {
+  domainType = 'fun';
+  domainDisplay = 'time.chenyue.fun';
+  authorURL = 'https://chenyue.fun';
+  authorLabel = '访问主页';
+} else if (isChenYueCyou) {
+  domainType = 'cyou';
+  domainDisplay = 'time.chenyue.cyou';
+  authorURL = 'https://chenyue.cyou';
+  authorLabel = '访问主页';
+} else if (isChenYueArt) {
   domainType = 'art';
   domainDisplay = 'time.chenyue.art';
   authorURL = 'https://chenyue.art:957';
   authorLabel = '访问主页';
-} else if (host.includes('github')) {
+} else if (isGithubPages) {
   domainType = 'github';
-  domainDisplay = 'time.chenyue.top';
+  domainDisplay = 'chenyue957.github.io/time/';
   authorURL = 'https://chenyue957.github.io/home/';
   authorLabel = '访问主页';
 } else {
-  domainType = 'top';
-  domainDisplay = 'time.chenyue.top';
-  authorURL = 'https://chenyue.top';
+  // 兜底默认
+  domainType = 'fun';
+  domainDisplay = 'time.chenyue.fun';
+  authorURL = 'https://chenyue.fun';
   authorLabel = '访问主页';
 }
 
@@ -57,7 +80,7 @@ document.getElementById('site-domain').textContent = domainDisplay;
 document.getElementById('author-link').href = authorURL;
 document.getElementById('author-link').textContent = '尘钥 ChenYue';
 
-const nodeMap = { top: 'node-top', art: 'node-art', github: 'node-gh' };
+const nodeMap = { top: 'node-fun', art: 'node-art', github: 'node-gh' };
 const currentNodeEl = document.getElementById(nodeMap[domainType]);
 if (currentNodeEl) currentNodeEl.classList.add('current');
 

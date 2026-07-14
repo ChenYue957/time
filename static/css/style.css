@@ -87,7 +87,11 @@ input, textarea, select {
 .footer-inner { margin-bottom: 8px; }
 .footer-link { color: var(--accent); text-decoration: none; }
 .footer-link:hover { text-decoration: underline; }
-.footer-sep { margin: 0 8px; }
+.footer-sep { margin: 0 8px; color: #999; }
+.footer-info-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; padding: 8px 0 0; font-size: 14px; color: #666; line-height: 1.6; }
+.footer-link-sub { color: #666; }
+.footer-link-icon { display: inline-flex; align-items: center; gap: 4px; }
+.footer-link-icon img { width: 16px; height: 16px; display: block; }
 .nav { display: flex; gap: 2px; }
 
 .nav-tab {
